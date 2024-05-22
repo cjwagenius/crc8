@@ -91,7 +91,7 @@ void die(const char *fmt, ...)
 
 	va_start(arg, fmt);
 
-	fputs("crc8: ", stderr);
+	fputs("crc8_list: ", stderr);
 	vfprintf(stderr, fmt, arg);
 
 	va_end(arg);
@@ -139,7 +139,7 @@ uint8_t *parse_argument(const char *arg, size_t *len, int *sbc)
 	uint8_t *data;
 
 	if (arg == NULL)
-		die("Usage: crc8 [+]hex-string\n");
+		die("Usage: crc8_list [+]hex-string\n");
 
 	if (*arg == '+') {
 		*sbc = 1;
@@ -153,11 +153,11 @@ uint8_t *parse_argument(const char *arg, size_t *len, int *sbc)
 	if (arg[*len])
 		die("invalid character @ %i (%c)\n", *len, arg[*len]);
 	if (*len % 2)
-		die("crc8: uneven number of characters\n");
+		die("uneven number of characters\n");
 
 	*len /= 2;
 	if (!(data = malloc(*len)))
-		die("crc8: out of memory\n");
+		die("out of memory\n");
 
 	dehexify(data, arg);
 
@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
 	int i;
 	size_t len;
 	uint8_t *data;
-	int sort_by_crc;
+	int sort_by_crc = 0;
 
 	data = parse_argument(argv[1], &len, &sort_by_crc);
 
