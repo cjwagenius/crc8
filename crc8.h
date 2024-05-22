@@ -55,6 +55,8 @@ typedef struct crc8 {
  *
  **/
 #define CRC8_INIT(t) (struct crc8)t;
+/*	   name		  init  poly   refin & refout   xor    */
+/*------------------------------------------------------------ */
 #define CRC8_AUTOSAR	{ 0xff, 0x2f, CRC8_REFIO_FALSE, 0xff }
 #define CRC8_BLUETOOTH	{ 0x00, 0xe5, CRC8_REFIO_TRUE,  0x00 }
 #define CRC8_CDMA2000	{ 0xff, 0x9b, CRC8_REFIO_FALSE, 0x00 }
