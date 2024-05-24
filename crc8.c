@@ -31,7 +31,7 @@
  * calculates multiple crc-values of a string of data represented in hex. this
  * is only an example on how to use crc8.h and isn't a part of the library.
  *
- * usage: crc8_list [+]hexadecimal-string [recipe]
+ * usage: crc8 [+]hexadecimal-string [recipe]
  *
  * 	+	the list will be ordered incremental by crc-value. otherwise
  * 		it's ordered in alphabetical order.
