@@ -28,22 +28,37 @@
  *
  * ----------------------------------------------------------------------------
  *
- * calculates multiple crc-values of a string of data represented in hex.
+ * calculates multiple crc-values of a string of data represented in hex. this
+ * is only an example on how to use crc8.h and isn't a part of the library.
  *
- * usage: crc8_list [+]hexadecimal-string
+ * usage: crc8_list [+]hexadecimal-string [recipe]
  *
  * 	+	the list will be ordered incremental by crc-value. otherwise
  * 		it's ordered in alphabetical order.
  *
+ * 	recipe	a custom crc8-recipe in the hex-format IIPPRRXX.
+ *
+ * 		II	initial value
+ * 		PP	polynomial
+ * 		RR	reverse in & out (00 = false, 01 = true)
+ * 		XX	value to xor the result with
+ *
  * example:
  *
- * 	$ crc8_list ff0c55ab000010
+ * 	$ crc8 ff0c55ab000010
  *
  * 	lists crc-values in alphabetical order.
  *
- * 	$ crc8_list +ff0c55ab000010
+ *
+ * 	$ crc8 +ff0c55ab000010
  *
  * 	lists crc-values ordered by the crc-value.
+ *
+ *
+ * 	$ crc8 ff0c55ab000010 00310000
+ *
+ * 	show the crc8-result of the crc8-recipe 00310000
+ * 	    (init: 0x00, poly: 0x31, revio: false, xor: 0x00)
  *
  **/
 
@@ -93,6 +108,7 @@ void die(const char *fmt, ...)
 
 	fputs("crc8_list: ", stderr);
 	vfprintf(stderr, fmt, arg);
+	fputc('\n', stderr);
 
 	va_end(arg);
 	
@@ -107,15 +123,32 @@ uint8_t hex_to_nibble(char ch)
 
 	return (uint8_t)ch;
 }
-void dehexify(uint8_t *dst, const char *src)
+size_t dehexify(uint8_t *dst, const char *src)
 {
-	uint8_t di, si;
+	/**
+	 * dehexifies hex-string @ src to dst (if dst != NULL).
+	 *
+	 * returns the number of bytes processed or -1 on error.
+	 **/
+
+	size_t len;
+	uint8_t di;
+	uint8_t si;
+
+	len = strspn(src, "0123456789abcdefABCDEF");
+	if (src[len] || len % 2)
+		die("invalid hex-string");
+
+	if (dst == NULL)
+		return len;
 
 	for (di = si = 0; src[si]; si += 2, di += 1) {
 		dst[di] = hex_to_nibble(src[si]);
 		dst[di] <<= 4;
 		dst[di] |= hex_to_nibble(src[si + 1]);
 	}
+
+	return len;
 }
 void crc_all(const uint8_t *data, size_t len)
 {
@@ -134,32 +167,39 @@ int algo_cmp_crc(const void *a, const void *b)
 
 	return ca->crc - cb->crc;
 }
-uint8_t *parse_argument(const char *arg, size_t *len, int *sbc)
+uint8_t *parse_argument(char *argv[], size_t *len, int *sbc)
 {
+	char *hx;
 	uint8_t *data;
 
-	if (arg == NULL)
-		die("Usage: crc8_list [+]hex-string\n");
+	if ((hx = argv[1]) == NULL)
+		die("Usage: crc8_list [+]hex-string [recipe IIPPRRXX]");
 
-	if (*arg == '+') {
-		*sbc = 1;
-		arg ++;
+	if (argv[2]) {
+		size_t len;
+		len = dehexify((uint8_t*)&(*algos).recipe, argv[2]);
+		if (len > 8)
+			die("invalid crc8-recipe");
+		crc8_init(&(*algos).recipe);
 	}
 
-	if (!strncmp(arg, "0x", 2))
-		arg += 2;
+	if (*hx == '+') {
+		*sbc = 1;
+		hx ++;
+	}
+
+	if (!strncmp(hx, "0x", 2))
+		hx += 2;
 	
-	*len = strspn(arg, "0123456789abcdefABCDEF");
-	if (arg[*len])
-		die("invalid character @ %i (%c)\n", *len, arg[*len]);
+	*len = dehexify(NULL, hx);
 	if (*len % 2)
-		die("uneven number of characters\n");
+		die("invalid hex-string");
 
 	*len /= 2;
 	if (!(data = malloc(*len)))
-		die("out of memory\n");
+		die("out of memory");
 
-	dehexify(data, arg);
+	if (dehexify(data, hx) == -1);
 
 	return data;
 }
@@ -171,7 +211,15 @@ int main(int argc, char* argv[])
 	uint8_t *data;
 	int sort_by_crc = 0;
 
-	data = parse_argument(argv[1], &len, &sort_by_crc);
+	data = parse_argument(argv, &len, &sort_by_crc);
+
+	if (argv[2]) {
+		struct crc8 *crc = &algos[0].recipe;
+		crc8(crc, data, len);
+		crc8_fin(crc);
+		printf("0x%02x\n", crc->crc); 
+		exit(EXIT_SUCCESS);
+	}
 
 	crc_all(data, len);
 	if (sort_by_crc)

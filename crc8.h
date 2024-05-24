@@ -38,7 +38,7 @@
 
 typedef struct crc8 {
 	uint8_t crc;		/* init & result  */
-	uint8_t poly;		/* polynominal    */
+	uint8_t poly;		/* polynomial    */
 	uint8_t refio;		/* refin & refout */
 	uint8_t xor;		/* xor out        */
 } crc8_t;
@@ -50,7 +50,7 @@ typedef struct crc8 {
  * 	struct crc8 crc = CRC8_INIT(CRC8_SMBUS);
  *
  *
- * observe that the polynominal of the recipes below that are using refin &
+ * observe that the polynomial of the recipes below that are using refin &
  * refout are bit-reversed. read crc8_init()-documentation for more info.
  *
  **/
@@ -125,9 +125,9 @@ void crc8_init(struct crc8 *crc)
 {
 	/** initialize a custom crc8 recipe.
 	 *
-	 * all this function does, is to bit-reverse the polynominal if
+	 * all this function does, is to bit-reverse the polynomial if
 	 * refin & refout are used by the recipe. so if your custom recipe
-	 * doesn't use refin & refout, or if you bit-reverse the polynominal
+	 * doesn't use refin & refout, or if you bit-reverse the polynomial
 	 * yourself, you can skip calling this function.
 	 *
 	 * example:
@@ -135,7 +135,7 @@ void crc8_init(struct crc8 *crc)
 	 * 	struct crc8 crc;
 	 *
 	 * 	crc.crc = 0x00;			// init-value
-	 *	crc.poly = 0x31;		// polynominal
+	 *	crc.poly = 0x31;		// polynomial
 	 *	crc.refio = CRC8_REFIO_FALSE;	// whether to refin & refout
 	 *	crc.xor = 0x00;			// what to xor the result with
 	 *
